@@ -4,8 +4,10 @@ import { useState } from "react";
 
 export default function SearchBar({
   onResults,
+  onQueryChange,
 }: {
   onResults: (data: any) => void;
+  onQueryChange: (query: string) => void;
 }) {
   const [query, setQuery] = useState("");
 
@@ -17,6 +19,7 @@ export default function SearchBar({
       const res = await fetch(`/api/search?query=${query}`);
       const data = await res.json();
       onResults(data.results);
+      onQueryChange(query);
     } catch (err) {
       console.error("Erro na busca:", err);
     }

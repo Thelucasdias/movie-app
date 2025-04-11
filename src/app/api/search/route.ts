@@ -12,7 +12,8 @@ export async function GET(request: Request) {
   }
 
   const apiKey = process.env.TMDB_API_KEY;
-  const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}&language=pt-BR`;
+  const page = searchParams.get("page") || "1";
+  const url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${query}&language=pt-BR&page=${page}`;
 
   try {
     const res = await fetch(url);
