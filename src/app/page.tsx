@@ -1,4 +1,3 @@
-// app/page.tsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -9,6 +8,7 @@ type Movie = {
   title: string;
   poster_path: string | null;
   release_date: string;
+  overview: string;
 };
 
 export default function Home() {
@@ -59,6 +59,16 @@ export default function Home() {
     setHasMore(true);
   };
 
+  const formatDate = (date: string) => {
+    const [year, month, day] = date.split("-");
+    return `${day}/${month}/${year}`;
+  };
+
+  const truncate = (text: string, maxLength: number) => {
+    if (text.length <= maxLength) return text;
+    return text.slice(0, maxLength) + "...";
+  };
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-4 text-center">Buscar Filmes</h1>
@@ -79,15 +89,20 @@ export default function Home() {
                   Sem imagem
                 </div>
               )}
-              <h2 className="mt-2 text-sm font-semibold">{movie.title}</h2>
-              <p className="text-xs text-gray-500">{movie.release_date}</p>
+              <h2 className="mt-2 text-base font-bold">{movie.title}</h2>
+              <p className="text-xs text-gray-500">
+                {formatDate(movie.release_date)}
+              </p>
+              <p className="text-xs text-gray-700 mt-1">
+                {truncate(movie.overview, 85)}
+              </p>
             </div>
           ))}
         </div>
       )}
 
       <div ref={loadMoreRef} className="h-10" />
-      {loading && <p className="text-center mt-4">Carregando mais...</p>}
+      {loading && <p className="text-center mt-4">loading...</p>}
     </main>
   );
 }
