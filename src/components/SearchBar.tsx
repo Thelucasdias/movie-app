@@ -1,12 +1,10 @@
-"use client";
-
 import { useState } from "react";
 
 export default function SearchBar({
   onResults,
   onQueryChange,
 }: {
-  onResults: (data: any) => void;
+  onResults: (data: any, query: string) => void;
   onQueryChange: (query: string) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -18,7 +16,7 @@ export default function SearchBar({
     try {
       const res = await fetch(`/api/search?query=${query}`);
       const data = await res.json();
-      onResults(data.results);
+      onResults(data.results, query);
       onQueryChange(query);
     } catch (err) {
       console.error("Erro na busca:", err);
