@@ -1,4 +1,5 @@
-const formatDate = (date: string) => {
+const formatDate = (date: string | undefined | null) => {
+  if (!date) return "";
   const [year, month, day] = date.split("-");
   return `${day}/${month}/${year}`;
 };
