@@ -5,20 +5,24 @@ import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { truncateSinopsys } from "@/utils/truncateText";
 import { Movie } from "@/types/movie";
+import Pagination from "@/components/Pagination";
 
 type Props = {
   initialResults: Movie[];
   initialQuery: string;
+  initialPage: number;
 };
+
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const query = (context.query.query as string) || "";
-  const page = (context.query.page as string) || "1";
+  const page = parseInt((context.query.page as string) || "1", 10);
 
   if (!query) {
     return {
       props: {
         initialResults: [],
         initialQuery: "",
+        initialPage: 1,
       },
     };
   }
@@ -32,19 +36,34 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     props: {
       initialResults: data.results || [],
       initialQuery: query,
+      initialPage: page,
     },
   };
 };
 
-export default function Home({ initialResults, initialQuery }: Props) {
-  const [results, setResults] = useState<Movie[]>(initialResults || []);
-  const [query, setQuery] = useState<string>(initialQuery || "");
-  const [page, setPage] = useState(1);
+export default function Home({
+  initialResults,
+  initialQuery,
+  initialPage,
+}: Props) {
+  const [results, setResults] = useState<Movie[]>(initialResults);
+  const [query, setQuery] = useState(initialQuery);
+  const [page, setPage] = useState(initialPage);
   const router = useRouter();
+  const totalPages = 1000;
 
   useEffect(() => {
-    if (page === 1 || !query) return;
-  }, [page, query]);
+    const fetchMovies = async () => {
+      if (!query) return;
+      const res = await fetch(`/api/search?query=${query}&page=${page}`);
+      const data = await res.json();
+      setResults(data.results || []);
+    };
+
+    if (query !== initialQuery || page !== initialPage) {
+      fetchMovies();
+    }
+  }, [query, page]);
 
   const handleNewSearch = (newResults: Movie[], searchTerm: string) => {
     setResults(newResults);
@@ -53,44 +72,53 @@ export default function Home({ initialResults, initialQuery }: Props) {
     router.push(`/?query=${searchTerm}&page=1`);
   };
 
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
+    router.push(`/?query=${query}&page=${newPage}`);
+  };
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-4 text-center">Buscar Filmes</h1>
-      <SearchBar
-        onResults={(results, searchTerm) =>
-          handleNewSearch(results, searchTerm)
-        }
-        onQueryChange={setQuery}
-      />
+
+      <SearchBar onResults={handleNewSearch} onQueryChange={setQuery} />
 
       {results.length > 0 && (
-        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-          {results.map((movie) => (
-            <div
-              key={movie.id}
-              className="border rounded-lg p-2 cursor-pointer hover:shadow-md transition"
-            >
-              {movie.poster_path ? (
-                <img
-                  src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-                  alt={movie.title}
-                  className="w-full h-auto rounded"
-                />
-              ) : (
-                <div className="bg-gray-200 w-full h-44 flex items-center justify-center text-gray-500">
-                  Sem imagem
-                </div>
-              )}
-              <h2 className="mt-2 text-base font-bold">{movie.title}</h2>
-              <p className="text-xs text-gray-500">
-                {formatDate(movie.release_date)}
-              </p>
-              <p className="text-xs text-gray-700 mt-1">
-                {truncateSinopsys(movie.overview, 85)}
-              </p>
-            </div>
-          ))}
-        </div>
+        <>
+          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+            {results.map((movie) => (
+              <div
+                key={movie.id}
+                className="border rounded-lg p-2 cursor-pointer hover:shadow-md transition"
+              >
+                {movie.poster_path ? (
+                  <img
+                    src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
+                    alt={movie.title}
+                    className="w-full h-auto rounded"
+                  />
+                ) : (
+                  <div className="bg-gray-200 w-full h-44 flex items-center justify-center text-gray-500">
+                    Sem imagem
+                  </div>
+                )}
+                <h2 className="mt-2 text-base font-bold">{movie.title}</h2>
+                <p className="text-xs text-gray-500">
+                  {formatDate(movie.release_date)}
+                </p>
+                <p className="text-xs text-gray-700 mt-1">
+                  {truncateSinopsys(movie.overview, 85)}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <Pagination
+            totalPages={10}
+            currentPage={page}
+            onPageChange={handlePageChange}
+          />
+        </>
       )}
     </main>
   );
