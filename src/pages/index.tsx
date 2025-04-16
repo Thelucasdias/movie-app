@@ -6,6 +6,7 @@ import { useRouter } from "next/router";
 import { truncateSinopsys } from "@/utils/truncateText";
 import { Movie } from "@/types/movie";
 import Pagination from "@/components/Pagination";
+import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
 
 type Props = {
   initialResults: Movie[];
@@ -14,13 +15,14 @@ type Props = {
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
-  const query = (context.query.query as string) || "";
+  const search = (context.query.search as string) || "";
   const page = parseInt((context.query.page as string) || "1", 10);
 
-  if (!query) {
+  if (!search) {
+    const randomMovies = await fetchRandomMovies();
     return {
       props: {
-        initialResults: [],
+        initialResults: randomMovies,
         initialQuery: "",
         initialPage: 1,
       },
@@ -28,14 +30,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   }
 
   const res = await fetch(
-    `http://localhost:3000/api/search?query=${query}&page=${page}`
+    `http://localhost:3000/api/search?query=${search}&page=${page}`
   );
   const data = await res.json();
 
   return {
     props: {
       initialResults: data.results || [],
-      initialQuery: query,
+      initialQuery: search,
       initialPage: page,
     },
   };
@@ -50,7 +52,6 @@ export default function Home({
   const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(initialPage);
   const router = useRouter();
-  const totalPages = 1000;
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -69,12 +70,12 @@ export default function Home({
     setResults(newResults);
     setQuery(searchTerm);
     setPage(1);
-    router.push(`/?query=${searchTerm}&page=1`);
+    router.push(`/?search=${searchTerm}&page=1`);
   };
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    router.push(`/?query=${query}&page=${newPage}`);
+    router.push(`/?search=${query}&page=${newPage}`);
   };
 
   return (
