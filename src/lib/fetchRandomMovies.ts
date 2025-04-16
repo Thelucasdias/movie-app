@@ -1,6 +1,6 @@
 import { Movie } from "@/types/movie";
 
-export async function fetchRandomMovies(): Promise<Movie[]> {
+export async function fetchRandomMovies(page = 1): Promise<Movie[]> {
   const randomPage = Math.floor(Math.random() * 500) + 1;
 
   const res = await fetch(

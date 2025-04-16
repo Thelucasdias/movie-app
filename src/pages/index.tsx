@@ -16,10 +16,10 @@ type Props = {
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const search = (context.query.search as string) || "";
-  const page = parseInt((context.query.page as string) || "1", 10);
+  const page = parseInt((context.query.page as string) || "1", 100);
 
   if (!search) {
-    const randomMovies = await fetchRandomMovies();
+    const randomMovies = await fetchRandomMovies(page);
     return {
       props: {
         initialResults: randomMovies,
@@ -51,6 +51,7 @@ export default function Home({
   const [results, setResults] = useState<Movie[]>(initialResults);
   const [query, setQuery] = useState(initialQuery);
   const [page, setPage] = useState(initialPage);
+  const [totalPages, setTotalPages] = useState(1);
   const router = useRouter();
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function Home({
       const res = await fetch(`/api/search?query=${query}&page=${page}`);
       const data = await res.json();
       setResults(data.results || []);
+      setTotalPages(data.total_pages);
     };
 
     if (query !== initialQuery || page !== initialPage) {
@@ -115,7 +117,7 @@ export default function Home({
           </div>
 
           <Pagination
-            totalPages={10}
+            totalPages={totalPages}
             currentPage={page}
             onPageChange={handlePageChange}
           />

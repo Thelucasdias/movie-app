@@ -9,7 +9,7 @@ export default function Pagination({
   totalPages,
   onPageChange,
 }: PaginationProps) {
-  const blockSize = 1000;
+  const blockSize = 10;
   const currentBlock = Math.floor((currentPage - 1) / blockSize);
   const startPage = currentBlock * blockSize + 1;
   const endPage = Math.min(startPage + blockSize - 1, totalPages);
@@ -19,7 +19,7 @@ export default function Pagination({
     (_, i) => startPage + i
   );
 
-  //const hasNext = currentPage < totalPages;
+  const hasNext = currentPage < totalPages;
   const hasPrevious = currentPage > 1;
 
   return (
@@ -48,7 +48,7 @@ export default function Pagination({
 
       <button
         onClick={() => onPageChange(currentPage + 1)}
-        //disabled={!hasNext}
+        disabled={!hasNext}
         className="px-3 py-1 border rounded-full hover:bg-gray-100 disabled:opacity-50"
       >
         Próxima &gt;
