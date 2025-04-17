@@ -7,11 +7,13 @@ import { truncateSinopsys } from "@/utils/truncateText";
 import { Movie } from "@/types/movie";
 import Pagination from "@/components/Pagination";
 import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
+import { init } from "next/dist/compiled/webpack/webpack";
 
 type Props = {
   initialResults: Movie[];
   initialQuery: string;
   initialPage: number;
+  initialTotalPages: number;
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -24,7 +26,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       props: {
         initialResults: randomMovies,
         initialQuery: "",
-        initialPage: 1,
       },
     };
   }
@@ -39,6 +40,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       initialResults: data.results || [],
       initialQuery: search,
       initialPage: page,
+      initialTotalPages: data.total_pages || 1,
     },
   };
 };
@@ -47,12 +49,19 @@ export default function Home({
   initialResults,
   initialQuery,
   initialPage,
+  initialTotalPages,
 }: Props) {
   const [results, setResults] = useState<Movie[]>(initialResults);
-  const [query, setQuery] = useState(initialQuery);
-  const [page, setPage] = useState(initialPage);
-  const [totalPages, setTotalPages] = useState(1);
+  const [totalPages, setTotalPages] = useState(initialTotalPages);
   const router = useRouter();
+  const queryParam =
+    typeof router.query.search === "string" ? router.query.search : "";
+  const pageParam = parseInt(
+    typeof router.query.page === "string" ? router.query.page : "1"
+  );
+
+  const [query, setQuery] = useState(queryParam);
+  const [page, setPage] = useState<number>(pageParam);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -63,7 +72,7 @@ export default function Home({
       setTotalPages(data.total_pages);
     };
 
-    if (query !== initialQuery || page !== initialPage) {
+    if (query) {
       fetchMovies();
     }
   }, [query, page]);
@@ -115,7 +124,6 @@ export default function Home({
               </div>
             ))}
           </div>
-
           <Pagination
             totalPages={totalPages}
             currentPage={page}
