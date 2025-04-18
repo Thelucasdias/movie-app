@@ -1,31 +1,30 @@
 import { useState, useEffect } from "react";
 import SearchBar from "@/components/SearchBar";
-import { formatDate } from "./providers/DateProvider";
+import { formatDate } from "@/utils/DateProvider";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { truncateSinopsys } from "@/utils/truncateText";
-import { Movie } from "@/types/movie";
+import { Movie, MovieDetails } from "@/types/movie";
 import Pagination from "@/components/Pagination";
 import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
-import { init } from "next/dist/compiled/webpack/webpack";
+import MovieModal from "@/components/MovieModal";
 
 type Props = {
   initialResults: Movie[];
-  initialQuery: string;
-  initialPage: number;
   initialTotalPages: number;
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const search = (context.query.search as string) || "";
-  const page = parseInt((context.query.page as string) || "1", 100);
+  const page = parseInt((context.query.page as string) || "1", 10);
 
   if (!search) {
     const randomMovies = await fetchRandomMovies(page);
     return {
       props: {
         initialResults: randomMovies,
-        initialQuery: "",
+
+        initialTotalPages: 1,
       },
     };
   }
@@ -44,11 +43,18 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 };
+const fetchMovieDetails = async (id: string): Promise<MovieDetails> => {
+  const res = await fetch(`/api/movies/${id}`);
+  if (!res.ok) {
+    throw new Error("Erro ao buscar detalhes do filme.");
+  }
+  const data = await res.json();
+  return data;
+};
 
 export default function Home({
   initialResults,
-  initialQuery,
-  initialPage,
+
   initialTotalPages,
 }: Props) {
   const [results, setResults] = useState<Movie[]>(initialResults);
@@ -62,6 +68,9 @@ export default function Home({
 
   const [query, setQuery] = useState(queryParam);
   const [page, setPage] = useState<number>(pageParam);
+
+  const [selectedMovie, setSelectedMovie] = useState<MovieDetails | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -89,6 +98,16 @@ export default function Home({
     router.push(`/?search=${query}&page=${newPage}`);
   };
 
+  const handleCardClick = async (movieId: string) => {
+    try {
+      const data = await fetchMovieDetails(movieId);
+      setSelectedMovie(data);
+      setIsModalOpen(true);
+    } catch (error) {
+      console.error("Erro ao buscar detalhes do filme:", error);
+    }
+  };
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-4 text-center">Buscar Filmes</h1>
@@ -102,6 +121,7 @@ export default function Home({
               <div
                 key={movie.id}
                 className="border rounded-lg p-2 cursor-pointer hover:shadow-md transition"
+                onClick={() => handleCardClick(String(movie.id))}
               >
                 {movie.poster_path ? (
                   <img
@@ -130,6 +150,15 @@ export default function Home({
             onPageChange={handlePageChange}
           />
         </>
+      )}
+      {isModalOpen && selectedMovie && (
+        <MovieModal
+          movie={selectedMovie}
+          onClose={() => {
+            setIsModalOpen(false);
+            setSelectedMovie(null);
+          }}
+        />
       )}
     </main>
   );
