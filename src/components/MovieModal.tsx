@@ -1,4 +1,5 @@
 import { MovieDetails } from "@/types/movie";
+import { formatDate } from "@/utils/DateProvider";
 
 interface MovieModal {
   movie: MovieDetails;
@@ -12,12 +13,16 @@ export default function MovieModal({ movie, onClose }: MovieModal) {
         <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
           <h2 className="text-xl font-bold mb-2">{movie.title}</h2>
           <p className="text-sm text-gray-700 mb-4">{movie.overview}</p>
-          <p className="text-sm text-gray-500 mb-2">
-            Lançamento: {movie.release_date}
+          <p className="text-sm text-gray-600 mb-4">
+            Elenco: {movie.cast.map((member) => member.name).join(", ")}
           </p>
           <p className="text-sm text-gray-500 mb-2">
-            Duração: {movie.runtime} min
+            Lançamento: {formatDate(movie.release_date)}
           </p>
+          <p className="text-sm text-gray-500 mb-2">
+            Duração: {Math.floor(movie.runtime / 60)}h {movie.runtime % 60}min
+          </p>
+
           <p className="text-sm text-gray-500 mb-4">
             Nota: {movie.vote_average}
           </p>
