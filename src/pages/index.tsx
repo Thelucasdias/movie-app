@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import SearchBar from "@/components/SearchBar";
-import { formatDate } from "@/utils/DateProvider";
+import { formatDate } from "@/utils/dateProvider";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { truncateSinopsys } from "@/utils/truncateText";
