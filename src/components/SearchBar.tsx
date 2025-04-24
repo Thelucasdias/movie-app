@@ -1,4 +1,5 @@
 import { useState } from "react";
+import FavoritePageButton from "./FavoritePageButton";
 
 export default function SearchBar({
   onResults,
@@ -24,7 +25,7 @@ export default function SearchBar({
   };
 
   return (
-    <form onSubmit={handleSearch} className="flex gap-2">
+    <form onSubmit={handleSearch} className="flex gap-1">
       <input
         type="text"
         placeholder="Buscar filmes..."
@@ -38,6 +39,7 @@ export default function SearchBar({
       >
         Buscar
       </button>
+      <FavoritePageButton />
     </form>
   );
 }
