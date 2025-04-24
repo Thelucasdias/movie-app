@@ -1,6 +1,7 @@
 import { MovieDetails } from "@/types/movie";
 import { formatDate } from "@/utils/dateProvider";
 import { formatRuntime } from "@/utils/formatRuntime";
+import { FavoriteButton } from "@/components/FavoriteButton";
 
 interface MovieModal {
   movie: MovieDetails;
@@ -23,6 +24,7 @@ export default function MovieModal({ movie, onClose }: MovieModal) {
               Sem imagem
             </div>
           )}
+          <FavoriteButton movie={movie} />
           <h2 className="text-xl font-bold mb-2">{movie.title}</h2>
           <p className="text-sm text-gray-700 mb-4">{movie.overview}</p>
           <p className="text-sm text-gray-600 mb-4">
