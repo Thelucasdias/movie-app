@@ -4,12 +4,12 @@ import { formatDate } from "@/utils/dateProvider";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
 import { truncateSinopsys } from "@/utils/truncateText";
-import { Movie, MovieDetails } from "@/types/movie";
+import { Movie } from "@/types/movie";
 import Pagination from "@/components/Pagination";
 import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
 import MovieModal from "@/components/MovieModal";
-import { fetchMovieDetails } from "@/lib/fetchMovieDetails";
 import { useMovieModal } from "@/hooks/useMovieModal";
+import { useMovieSearch } from "@/hooks/useMovieSearch";
 
 type Props = {
   initialResults: Movie[];
@@ -46,11 +46,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   };
 };
 
-export default function Home({
-  initialResults,
-
-  initialTotalPages,
-}: Props) {
+export default function Home({ initialResults, initialTotalPages }: Props) {
   const [results, setResults] = useState<Movie[]>(initialResults);
   const [totalPages, setTotalPages] = useState(initialTotalPages);
   const router = useRouter();
@@ -62,10 +58,6 @@ export default function Home({
 
   const [query, setQuery] = useState(queryParam);
   const [page, setPage] = useState<number>(pageParam);
-
-  const [localSelectedMovie, setLocalSelectedMovie] =
-    useState<MovieDetails | null>(null);
-  const [localIsModalOpen, setLocalIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -81,12 +73,7 @@ export default function Home({
     }
   }, [query, page]);
 
-  const handleNewSearch = (newResults: Movie[], searchTerm: string) => {
-    setResults(newResults);
-    setQuery(searchTerm);
-    setPage(1);
-    router.push(`/?search=${searchTerm}&page=1`);
-  };
+  const { handleNewSearch } = useMovieSearch(setResults, setQuery, setPage);
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
@@ -139,14 +126,8 @@ export default function Home({
           />
         </>
       )}
-      {localIsModalOpen && localSelectedMovie && (
-        <MovieModal
-          movie={localSelectedMovie}
-          onClose={() => {
-            setLocalIsModalOpen(false);
-            setLocalSelectedMovie(null);
-          }}
-        />
+      {isModalOpen && selectedMovie && (
+        <MovieModal movie={selectedMovie} onClose={closeModal} />
       )}
     </main>
   );

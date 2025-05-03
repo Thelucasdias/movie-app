@@ -3,28 +3,14 @@ import MovieModal from "@/components/MovieModal";
 import { Movie, MovieDetails } from "@/types/movie";
 import { useState } from "react";
 
-export const FavoriteList = () => {
+interface FavoriteListProps {
+  onMovieClick: (movieId: string) => Promise<void>;
+}
+
+export function FavoriteList({ onMovieClick }: FavoriteListProps) {
   const { favorites } = useFavorites();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<MovieDetails | null>(null);
-
-  const fetchMovieDetails = async (id: string): Promise<MovieDetails> => {
-    const res = await fetch(`/api/movies/${id}`);
-    if (!res.ok) {
-      throw new Error("Erro ao buscar detalhes do filme.");
-    }
-    const data = await res.json();
-    return data;
-  };
-  const handleCardClick = async (movieId: string) => {
-    try {
-      const data = await fetchMovieDetails(movieId);
-      setSelectedMovie(data);
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error("Erro ao buscar detalhes do filme:", error);
-    }
-  };
 
   if (favorites.length === 0) return <p>Nenhum filme favoritado.</p>;
 
@@ -34,6 +20,7 @@ export const FavoriteList = () => {
         <div
           key={movie.id}
           className="border rounded-lg p-2 cursor-pointer hover:shadow-md transition"
+          onClick={() => onMovieClick(String(movie.id))}
         >
           <img
             src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
@@ -54,4 +41,4 @@ export const FavoriteList = () => {
       )}
     </div>
   );
-};
+}
