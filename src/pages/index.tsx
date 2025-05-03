@@ -8,6 +8,8 @@ import { Movie, MovieDetails } from "@/types/movie";
 import Pagination from "@/components/Pagination";
 import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
 import MovieModal from "@/components/MovieModal";
+import { fetchMovieDetails } from "@/lib/fetchMovieDetails";
+import { useMovieModal } from "@/hooks/useMovieModal";
 
 type Props = {
   initialResults: Movie[];
@@ -43,14 +45,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 };
-const fetchMovieDetails = async (id: string): Promise<MovieDetails> => {
-  const res = await fetch(`/api/movies/${id}`);
-  if (!res.ok) {
-    throw new Error("Erro ao buscar detalhes do filme.");
-  }
-  const data = await res.json();
-  return data;
-};
 
 export default function Home({
   initialResults,
@@ -69,8 +63,9 @@ export default function Home({
   const [query, setQuery] = useState(queryParam);
   const [page, setPage] = useState<number>(pageParam);
 
-  const [selectedMovie, setSelectedMovie] = useState<MovieDetails | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [localSelectedMovie, setLocalSelectedMovie] =
+    useState<MovieDetails | null>(null);
+  const [localIsModalOpen, setLocalIsModalOpen] = useState(false);
 
   useEffect(() => {
     const fetchMovies = async () => {
@@ -98,15 +93,8 @@ export default function Home({
     router.push(`/?search=${query}&page=${newPage}`);
   };
 
-  const handleCardClick = async (movieId: string) => {
-    try {
-      const data = await fetchMovieDetails(movieId);
-      setSelectedMovie(data);
-      setIsModalOpen(true);
-    } catch (error) {
-      console.error("Erro ao buscar detalhes do filme:", error);
-    }
-  };
+  const { handleCardClick, isModalOpen, selectedMovie, closeModal } =
+    useMovieModal();
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
@@ -151,12 +139,12 @@ export default function Home({
           />
         </>
       )}
-      {isModalOpen && selectedMovie && (
+      {localIsModalOpen && localSelectedMovie && (
         <MovieModal
-          movie={selectedMovie}
+          movie={localSelectedMovie}
           onClose={() => {
-            setIsModalOpen(false);
-            setSelectedMovie(null);
+            setLocalIsModalOpen(false);
+            setLocalSelectedMovie(null);
           }}
         />
       )}
