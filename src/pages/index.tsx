@@ -10,10 +10,13 @@ import { useMovieModal } from "@/hooks/useMovieModal";
 import { useMovieSearch } from "@/hooks/useMovieSearch";
 import { usePagination } from "@/hooks/usePagination";
 import MovieGrid from "@/components/MovieGrid";
+import { useMovies } from "@/hooks/useMovies";
 
 type Props = {
   initialResults: Movie[];
   initialTotalPages: number;
+  initialQuery?: string;
+  initialPage?: number;
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -25,7 +28,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         initialResults: randomMovies,
-
         initialTotalPages: 1,
       },
     };
@@ -45,33 +47,16 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 };
-
-export default function Home({ initialResults, initialTotalPages }: Props) {
-  const [results, setResults] = useState<Movie[]>(initialResults);
-  const [totalPages, setTotalPages] = useState(initialTotalPages);
+export default function Home({
+  initialResults,
+  initialTotalPages,
+  initialQuery = "",
+  initialPage = 1,
+}: Props) {
   const router = useRouter();
-  const queryParam =
-    typeof router.query.search === "string" ? router.query.search : "";
-  const pageParam = parseInt(
-    typeof router.query.page === "string" ? router.query.page : "1"
-  );
 
-  const [query, setQuery] = useState(queryParam);
-  const [page, setPage] = useState<number>(pageParam);
-
-  useEffect(() => {
-    const fetchMovies = async () => {
-      if (!query) return;
-      const res = await fetch(`/api/search?query=${query}&page=${page}`);
-      const data = await res.json();
-      setResults(data.results || []);
-      setTotalPages(data.total_pages);
-    };
-
-    if (query) {
-      fetchMovies();
-    }
-  }, [query, page]);
+  const { query, page, results, totalPages, setQuery, setPage, setResults } =
+    useMovies(initialQuery, initialPage, initialResults, initialTotalPages);
 
   const { handleNewSearch } = useMovieSearch(setResults, setQuery, setPage);
 
