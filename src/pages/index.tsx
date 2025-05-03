@@ -10,6 +10,7 @@ import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
 import MovieModal from "@/components/MovieModal";
 import { useMovieModal } from "@/hooks/useMovieModal";
 import { useMovieSearch } from "@/hooks/useMovieSearch";
+import { usePagination } from "@/hooks/usePagination";
 
 type Props = {
   initialResults: Movie[];
@@ -75,10 +76,7 @@ export default function Home({ initialResults, initialTotalPages }: Props) {
 
   const { handleNewSearch } = useMovieSearch(setResults, setQuery, setPage);
 
-  const handlePageChange = (newPage: number) => {
-    setPage(newPage);
-    router.push(`/?search=${query}&page=${newPage}`);
-  };
+  const { handlePageChange } = usePagination(query, setPage);
 
   const { handleCardClick, isModalOpen, selectedMovie, closeModal } =
     useMovieModal();
