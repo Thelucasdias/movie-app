@@ -1,9 +1,7 @@
 import { useState, useEffect } from "react";
 import SearchBar from "@/components/SearchBar";
-import { formatDate } from "@/utils/dateProvider";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
-import { truncateSinopsys } from "@/utils/truncateText";
 import { Movie } from "@/types/movie";
 import Pagination from "@/components/Pagination";
 import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
@@ -11,6 +9,7 @@ import MovieModal from "@/components/MovieModal";
 import { useMovieModal } from "@/hooks/useMovieModal";
 import { useMovieSearch } from "@/hooks/useMovieSearch";
 import { usePagination } from "@/hooks/usePagination";
+import MovieGrid from "@/components/MovieGrid";
 
 type Props = {
   initialResults: Movie[];
@@ -89,34 +88,7 @@ export default function Home({ initialResults, initialTotalPages }: Props) {
 
       {results.length > 0 && (
         <>
-          <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-            {results.map((movie) => (
-              <div
-                key={movie.id}
-                className="border rounded-lg p-2 cursor-pointer hover:shadow-md transition"
-                onClick={() => handleCardClick(String(movie.id))}
-              >
-                {movie.poster_path ? (
-                  <img
-                    src={`https://image.tmdb.org/t/p/w300${movie.poster_path}`}
-                    alt={movie.title}
-                    className="w-full h-auto rounded"
-                  />
-                ) : (
-                  <div className="bg-gray-200 w-full h-44 flex items-center justify-center text-gray-500">
-                    Sem imagem
-                  </div>
-                )}
-                <h2 className="mt-2 text-base font-bold">{movie.title}</h2>
-                <p className="text-xs text-gray-500">
-                  {formatDate(movie.release_date)}
-                </p>
-                <p className="text-xs text-gray-700 mt-1">
-                  {truncateSinopsys(movie.overview, 85)}
-                </p>
-              </div>
-            ))}
-          </div>
+          <MovieGrid movies={results} onMovieClick={handleCardClick} />
           <Pagination
             totalPages={totalPages}
             currentPage={page}
