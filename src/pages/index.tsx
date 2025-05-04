@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import SearchBar from "@/components/SearchBar";
 import { GetServerSideProps } from "next";
 import { useRouter } from "next/router";
@@ -28,7 +27,6 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         initialResults: randomMovies,
-        initialTotalPages: 1,
       },
     };
   }
@@ -65,6 +63,8 @@ export default function Home({
   const { handleCardClick, isModalOpen, selectedMovie, closeModal } =
     useMovieModal();
 
+  const isSearch = query.trim().length > 0;
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-4xl font-bold mb-4 text-center">Buscar Filmes</h1>
@@ -74,11 +74,13 @@ export default function Home({
       {results.length > 0 && (
         <>
           <MovieGrid movies={results} onMovieClick={handleCardClick} />
-          <Pagination
-            totalPages={totalPages}
-            currentPage={page}
-            onPageChange={handlePageChange}
-          />
+          {isSearch && (
+            <Pagination
+              totalPages={totalPages}
+              currentPage={page}
+              onPageChange={handlePageChange}
+            />
+          )}
         </>
       )}
       {isModalOpen && selectedMovie && (

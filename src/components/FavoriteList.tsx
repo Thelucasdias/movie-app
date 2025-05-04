@@ -2,6 +2,7 @@ import { useFavorites } from "@/contexts/FavoritesContext";
 import MovieModal from "@/components/MovieModal";
 import { Movie, MovieDetails } from "@/types/movie";
 import { useState } from "react";
+import { truncateSinopsys } from "@/utils/truncateText";
 
 interface FavoriteListProps {
   onMovieClick: (movieId: string) => Promise<void>;
@@ -28,6 +29,9 @@ export function FavoriteList({ onMovieClick }: FavoriteListProps) {
             className="rounded"
           />
           <h3 className="text-sm font-semibold mt-2">{movie.title}</h3>
+          <p className="text-xs text-gray-700 mt-1">
+            {truncateSinopsys(movie.overview, 85)}
+          </p>
         </div>
       ))}
       {isModalOpen && selectedMovie && (
