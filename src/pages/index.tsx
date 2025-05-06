@@ -1,6 +1,5 @@
 import SearchBar from "@/components/SearchBar";
 import { GetServerSideProps } from "next";
-import { useRouter } from "next/router";
 import { Movie } from "@/types/movie";
 import Pagination from "@/components/Pagination";
 import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
@@ -10,6 +9,8 @@ import { useMovieSearch } from "@/hooks/useMovieSearch";
 import { usePagination } from "@/hooks/usePagination";
 import MovieGrid from "@/components/MovieGrid";
 import { useMovies } from "@/hooks/useMovies";
+import { useInfiniteScroll } from "@/hooks/useInfinteScroll";
+import { useEffect } from "react";
 
 type Props = {
   initialResults: Movie[];
@@ -27,6 +28,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     return {
       props: {
         initialResults: randomMovies,
+        initialTotalPages: 500,
       },
     };
   }
@@ -51,19 +53,42 @@ export default function Home({
   initialQuery = "",
   initialPage = 1,
 }: Props) {
-  const router = useRouter();
-
   const { query, page, results, totalPages, setQuery, setPage, setResults } =
     useMovies(initialQuery, initialPage, initialResults, initialTotalPages);
 
   const { handleNewSearch } = useMovieSearch(setResults, setQuery, setPage);
-
   const { handlePageChange } = usePagination(query, setPage);
-
   const { handleCardClick, isModalOpen, selectedMovie, closeModal } =
     useMovieModal();
 
   const isSearch = query.trim().length > 0;
+
+  const {
+    movies: randomMovies,
+    loaderRef,
+    loading,
+  } = useInfiniteScroll(!isSearch);
+
+  useEffect(() => {
+    if (isSearch) {
+      setResults([]);
+    }
+  }, [isSearch]);
+  useEffect(() => {
+    if (!isSearch && initialResults.length > 0) {
+      const loadNewRandomMovies = async () => {
+        const randomPage = Math.floor(Math.random() * 500) + 1;
+        const newMovies = await fetchRandomMovies(randomPage);
+        setResults(newMovies);
+      };
+
+      loadNewRandomMovies();
+    }
+  }, []);
+
+  const displayedMovies = isSearch
+    ? results
+    : [...initialResults, ...randomMovies];
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
@@ -71,15 +96,22 @@ export default function Home({
 
       <SearchBar onResults={handleNewSearch} onQueryChange={setQuery} />
 
-      {results.length > 0 && (
+      {displayedMovies.length > 0 && (
         <>
-          <MovieGrid movies={results} onMovieClick={handleCardClick} />
-          {isSearch && (
+          <MovieGrid movies={displayedMovies} onMovieClick={handleCardClick} />
+          {isSearch ? (
             <Pagination
               totalPages={totalPages}
               currentPage={page}
               onPageChange={handlePageChange}
             />
+          ) : (
+            <div
+              ref={loaderRef}
+              className="h-20 mt-8 text-center text-gray-500"
+            >
+              {loading && <p>Carregando...</p>}
+            </div>
           )}
         </>
       )}
