@@ -11,6 +11,7 @@ import MovieGrid from "@/components/MovieGrid";
 import { useMovies } from "@/hooks/useMovies";
 import { useInfiniteScroll } from "@/hooks/useInfinteScroll";
 import { useEffect } from "react";
+import { useMemo as reactUseMemo } from "react";
 
 type Props = {
   initialResults: Movie[];
@@ -24,7 +25,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
   const page = parseInt((context.query.page as string) || "1", 10);
 
   if (!search) {
-    const randomMovies = await fetchRandomMovies(page);
+    const randomMovies = await fetchRandomMovies();
     return {
       props: {
         initialResults: randomMovies,
@@ -69,29 +70,27 @@ export default function Home({
     loading,
   } = useInfiniteScroll(!isSearch);
 
+  const displayedMovies = useMemo(() => {
+    if (isSearch) return results;
+
+    const combined = [...initialResults, ...randomMovies];
+    const uniqueIds = new Set();
+
+    return combined.filter((movie) => {
+      if (uniqueIds.has(movie.id)) return false;
+      uniqueIds.add(movie.id);
+      return true;
+    });
+  }, [isSearch, results, initialResults, randomMovies]);
+
   useEffect(() => {
     if (isSearch) {
       setResults([]);
     }
   }, [isSearch]);
-  useEffect(() => {
-    if (!isSearch && initialResults.length > 0) {
-      const loadNewRandomMovies = async () => {
-        const randomPage = Math.floor(Math.random() * 500) + 1;
-        const newMovies = await fetchRandomMovies(randomPage);
-        setResults(newMovies);
-      };
-
-      loadNewRandomMovies();
-    }
-  }, []);
-
-  const displayedMovies = isSearch
-    ? results
-    : [...initialResults, ...randomMovies];
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8">
+    <main className="max-w-4xl mx-auto px-4 py-8 relative">
       <h1 className="text-4xl font-bold mb-4 text-center">Buscar Filmes</h1>
 
       <SearchBar onResults={handleNewSearch} onQueryChange={setQuery} />
@@ -116,8 +115,14 @@ export default function Home({
         </>
       )}
       {isModalOpen && selectedMovie && (
-        <MovieModal movie={selectedMovie} onClose={closeModal} />
+        <div className="fixed inset-0 z-50">
+          {" "}
+          <MovieModal movie={selectedMovie} onClose={closeModal} />
+        </div>
       )}
     </main>
   );
+}
+function useMemo<T>(factory: () => T, dependencies: any[]): T {
+  return reactUseMemo(factory, dependencies);
 }

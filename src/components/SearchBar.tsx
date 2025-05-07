@@ -1,5 +1,6 @@
 import { useState } from "react";
 import FavoritePageButton from "./FavoritePageButton";
+import BackButton from "./BackButton";
 
 export default function SearchBar({
   onResults,
@@ -26,6 +27,12 @@ export default function SearchBar({
 
   return (
     <form onSubmit={handleSearch} className="flex gap-1">
+      <BackButton
+        className="bg-gray-200 text-gray-800 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors"
+        href="/"
+      >
+        Home
+      </BackButton>
       <input
         type="text"
         placeholder="Buscar filmes..."

@@ -2,6 +2,7 @@ import { MovieDetails } from "@/types/movie";
 import { formatDate } from "@/utils/dateProvider";
 import { formatRuntime } from "@/utils/formatRuntime";
 import { FavoriteButton } from "@/components/FavoriteButton";
+import { useEffect, useRef } from "react";
 
 interface MovieModal {
   movie: MovieDetails;
@@ -9,6 +10,23 @@ interface MovieModal {
 }
 
 export default function MovieModal({ movie, onClose }: MovieModal) {
+  const modalRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
+        onClose();
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [onClose]);
   return (
     <div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray bg-opacity-10">
