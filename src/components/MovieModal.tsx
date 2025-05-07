@@ -30,7 +30,10 @@ export default function MovieModal({ movie, onClose }: MovieModal) {
   return (
     <div>
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray bg-opacity-10">
-        <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+        <div
+          ref={modalRef}
+          className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg"
+        >
           {movie.backdrop_path ? (
             <img
               src={`https://image.tmdb.org/t/p/original${movie.backdrop_path}`}

@@ -10,8 +10,7 @@ import { usePagination } from "@/hooks/usePagination";
 import MovieGrid from "@/components/MovieGrid";
 import { useMovies } from "@/hooks/useMovies";
 import { useInfiniteScroll } from "@/hooks/useInfinteScroll";
-import { useEffect } from "react";
-import { useMemo as reactUseMemo } from "react";
+import { useEffect, useMemo } from "react";
 
 type Props = {
   initialResults: Movie[];
@@ -122,7 +121,4 @@ export default function Home({
       )}
     </main>
   );
-}
-function useMemo<T>(factory: () => T, dependencies: any[]): T {
-  return reactUseMemo(factory, dependencies);
 }
