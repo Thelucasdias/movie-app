@@ -92,7 +92,10 @@ export default function Home({
     <main className="max-w-4xl mx-auto px-4 py-8 relative">
       <h1 className="text-4xl font-bold mb-4 text-center">Buscar Filmes</h1>
 
-      <SearchBar onResults={handleNewSearch} onQueryChange={setQuery} />
+      <SearchBar
+        onResults={(results) => setResults(results)}
+        onQueryChange={setQuery}
+      />
 
       {displayedMovies.length > 0 && (
         <>
