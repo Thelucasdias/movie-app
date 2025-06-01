@@ -5,23 +5,53 @@ import Pagination from "@/components/Pagination";
 import { fetchRandomMovies } from "@/lib/fetchRandomMovies";
 import MovieModal from "@/components/MovieModal";
 import { useMovieModal } from "@/hooks/useMovieModal";
-import { useMovieSearch } from "@/hooks/useMovieSearch";
 import { usePagination } from "@/hooks/usePagination";
 import MovieGrid from "@/components/MovieGrid";
 import { useMovies } from "@/hooks/useMovies";
 import { useInfiniteScroll } from "@/hooks/useInfinteScroll";
 import { useEffect, useMemo } from "react";
+import GenreFilter from "@/components/GenreFilter";
+import { Genre } from "@/types/genre";
 
 type Props = {
   initialResults: Movie[];
   initialTotalPages: number;
   initialQuery?: string;
   initialPage?: number;
+  genres: Genre[];
+  genresError?: string;
 };
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const search = (context.query.search as string) || "";
   const page = parseInt((context.query.page as string) || "1", 10);
+
+  let genres: Genre[] = [];
+  let genresError: string | undefined;
+  try {
+    const apiKey = process.env.TMDB_API_KEY;
+
+    if (!apiKey) {
+      throw new Error("TMDB_API_KEY não configurada no ambiente do servidor.");
+    }
+
+    const genreResponse = await fetch(
+      `https://api.themoviedb.org/3/genre/movie/list?api_key=${apiKey}&language=pt-BR`
+    );
+
+    if (!genreResponse.ok) {
+      const errorText = await genreResponse.text();
+      throw new Error(
+        `Erro ao buscar gêneros: ${genreResponse.status} - ${errorText}`
+      );
+    }
+
+    const genreData = await genreResponse.json();
+    genres = genreData.genres;
+  } catch (err: any) {
+    console.error("Erro ao buscar gêneros no servidor:", err);
+    genresError = err.message || "Erro desconhecido ao carregar gêneros.";
+  }
 
   if (!search) {
     const randomMovies = await fetchRandomMovies();
@@ -44,6 +74,8 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       initialQuery: search,
       initialPage: page,
       initialTotalPages: data.total_pages || 1,
+      genres,
+      genresError,
     },
   };
 };
@@ -52,11 +84,12 @@ export default function Home({
   initialTotalPages,
   initialQuery = "",
   initialPage = 1,
+  genres,
+  genresError,
 }: Props) {
   const { query, page, results, totalPages, setQuery, setPage, setResults } =
     useMovies(initialQuery, initialPage, initialResults, initialTotalPages);
 
-  const { handleNewSearch } = useMovieSearch(setResults, setQuery, setPage);
   const { handlePageChange } = usePagination(query, setPage);
   const { handleCardClick, isModalOpen, selectedMovie, closeModal } =
     useMovieModal();
@@ -96,6 +129,13 @@ export default function Home({
         onResults={(results) => setResults(results)}
         onQueryChange={setQuery}
       />
+      {genresError ? (
+        <div className="p-4 m-4 text-red-600 font-bold">
+          Erro ao carregar gêneros: {genresError}
+        </div>
+      ) : (
+        <GenreFilter genres={genres} />
+      )}
 
       {displayedMovies.length > 0 && (
         <>
