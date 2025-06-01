@@ -25,6 +25,7 @@ type Props = {
 export const getServerSideProps: GetServerSideProps = async (context) => {
   const search = (context.query.search as string) || "";
   const page = parseInt((context.query.page as string) || "1", 10);
+  const genre = context.query.genre as string;
 
   let genres: Genre[] = [];
   let genresError: string | undefined;
@@ -53,12 +54,31 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     genresError = err.message || "Erro desconhecido ao carregar gêneros.";
   }
 
+  if (genre && !search) {
+    const apiKey = process.env.TMDB_API_KEY;
+    const genreMoviesRes = await fetch(
+      `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&language=pt-BR&with_genres=${genre}&page=${page}`
+    );
+    const genreMoviesData = await genreMoviesRes.json();
+
+    return {
+      props: {
+        initialResults: genreMoviesData.results || [],
+        initialTotalPages: genreMoviesData.total_pages || 1,
+        initialPage: page,
+        genres,
+        genresError: genresError ?? null,
+      },
+    };
+  }
   if (!search) {
     const randomMovies = await fetchRandomMovies();
     return {
       props: {
         initialResults: randomMovies,
         initialTotalPages: 500,
+        genres,
+        genresError: genresError ?? null,
       },
     };
   }
@@ -75,7 +95,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       initialPage: page,
       initialTotalPages: data.total_pages || 1,
       genres,
-      genresError,
+      genresError: genresError ?? null,
     },
   };
 };
