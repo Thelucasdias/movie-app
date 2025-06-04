@@ -71,7 +71,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   }
-  if (!search) {
+  if (!search && !genre) {
     const randomMovies = await fetchRandomMovies();
     return {
       props: {
@@ -120,7 +120,7 @@ export default function Home({
     movies: randomMovies,
     loaderRef,
     loading,
-  } = useInfiniteScroll(!isSearch);
+  } = useInfiniteScroll(!isSearch && !genres);
 
   const displayedMovies = useMemo(() => {
     if (isSearch) return results;
