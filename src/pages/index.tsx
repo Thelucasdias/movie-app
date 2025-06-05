@@ -8,7 +8,7 @@ import { useMovieModal } from "@/hooks/useMovieModal";
 import { usePagination } from "@/hooks/usePagination";
 import MovieGrid from "@/components/MovieGrid";
 import { useMovies } from "@/hooks/useMovies";
-import { useInfiniteScroll } from "@/hooks/useInfinteScroll";
+import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useEffect, useMemo } from "react";
 import GenreFilter from "@/components/GenreFilter";
 import { Genre } from "@/types/genre";
@@ -29,9 +29,9 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
   let genres: Genre[] = [];
   let genresError: string | undefined;
+
   try {
     const apiKey = process.env.TMDB_API_KEY;
-
     if (!apiKey) {
       throw new Error("TMDB_API_KEY não configurada no ambiente do servidor.");
     }
@@ -71,6 +71,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
       },
     };
   }
+
   if (!search && !genre) {
     const randomMovies = await fetchRandomMovies();
     return {
@@ -99,6 +100,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     },
   };
 };
+
 export default function Home({
   initialResults,
   initialTotalPages,
@@ -115,15 +117,18 @@ export default function Home({
     useMovieModal();
 
   const isSearch = query.trim().length > 0;
+  const isGenreFilter =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("genre");
 
   const {
     movies: randomMovies,
     loaderRef,
     loading,
-  } = useInfiniteScroll(!isSearch && !genres);
+  } = useInfiniteScroll(!isSearch && !isGenreFilter);
 
   const displayedMovies = useMemo(() => {
-    if (isSearch) return results;
+    if (isSearch || isGenreFilter) return results;
 
     const combined = [...initialResults, ...randomMovies];
     const uniqueIds = new Set();
@@ -133,13 +138,13 @@ export default function Home({
       uniqueIds.add(movie.id);
       return true;
     });
-  }, [isSearch, results, initialResults, randomMovies]);
+  }, [isSearch, isGenreFilter, results, initialResults, randomMovies]);
 
   useEffect(() => {
-    if (isSearch) {
-      setResults([]);
+    if (isSearch || isGenreFilter) {
+      setResults(initialResults);
     }
-  }, [isSearch]);
+  }, [isSearch, isGenreFilter]);
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8 relative">
@@ -160,7 +165,7 @@ export default function Home({
       {displayedMovies.length > 0 && (
         <>
           <MovieGrid movies={displayedMovies} onMovieClick={handleCardClick} />
-          {isSearch ? (
+          {isSearch || isGenreFilter ? (
             <Pagination
               totalPages={totalPages}
               currentPage={page}
@@ -178,7 +183,6 @@ export default function Home({
       )}
       {isModalOpen && selectedMovie && (
         <div className="fixed inset-0 z-50">
-          {" "}
           <MovieModal movie={selectedMovie} onClose={closeModal} />
         </div>
       )}

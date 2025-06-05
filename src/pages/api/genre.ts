@@ -17,7 +17,7 @@ export default async function handler(
 
   try {
     const response = await fetch(
-      `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genre}&page=${page}&language=pt-BR`
+      `${BASE_URL}/movie?api_key=${API_KEY}&with_genres=${genre}&page=${page}&language=pt-BR`
     );
 
     if (!response.ok) {
