@@ -13,15 +13,20 @@ export function useMovies(
   const [totalPages, setTotalPages] = useState(initialTotalPages);
 
   useEffect(() => {
+    setResults(initialResults);
+    setTotalPages(initialTotalPages);
+  }, [initialResults, initialTotalPages]);
+
+  useEffect(() => {
+    if (!query) return;
     const fetchMovies = async () => {
-      if (!query) return;
       const res = await fetch(`/api/search?query=${query}&page=${page}`);
       const data = await res.json();
       setResults(data.results || []);
       setTotalPages(data.total_pages);
     };
 
-    if (query) fetchMovies();
+    fetchMovies();
   }, [query, page]);
 
   return {
